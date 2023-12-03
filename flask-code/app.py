@@ -1,10 +1,19 @@
 from flask import Flask, Response, request, jsonify
 from gensim.models import Word2Vec
+import json
+import os
 
 app = Flask(__name__)
 
 # 모델 설정 하는 공간
 muchu_model = Word2Vec.load("경로 설정")
+
+
+@app.route('/test', methods=['POST'])
+def test():
+    print('TEST')
+
+    return "TEST SUCCESSFUL"
 
 
 # 검색 함수 설정
