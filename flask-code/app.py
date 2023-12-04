@@ -1,12 +1,19 @@
 from flask import Flask, Response, request, jsonify
-from gensim.models import Word2Vec
-import json
-import os
+import joblib
+import gensim
+import typing
+import numpy as np
+from IPython.display import clear_output
 
 app = Flask(__name__)
+kMeansModel = joblib.load('/Users/parkwonjeong/Documents/Muchu/KMEANS-200vec-75cluster.txt')
+W2Vmodel = gensim.models.Word2Vec.load('/Users/parkwonjeong/Documents/Muchu/ko.bin')
 
+# 실행 되는 공간
+# 모델 올리고
 # 모델 설정 하는 공간
-muchu_model = Word2Vec.load("경로 설정")
+
+# muchu_model = Word2Vec.load("경로 설정")
 
 
 @app.route('/test', methods=['POST'])
@@ -26,7 +33,6 @@ def search():
         return jsonify({'error': '단어를 입력해 주세요.'}), 400
 
     word = data['word']
-
     # 검색 단어 벡터화 진행
     try:
         vector = muchu_model.wv[word]
@@ -45,4 +51,4 @@ def search():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
