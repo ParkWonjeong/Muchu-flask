@@ -1,53 +1,50 @@
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, request, jsonify, make_response
 import joblib
 import gensim
-import typing
+import traceback
 import numpy as np
-from IPython.display import clear_output
 
 app = Flask(__name__)
-kMeansModel = joblib.load('/Users/parkwonjeong/Documents/Muchu/KMEANS-200vec-75cluster.txt')
-W2Vmodel = gensim.models.Word2Vec.load('/Users/parkwonjeong/Documents/Muchu/ko.bin')
-
-# 실행 되는 공간
-# 모델 올리고
-# 모델 설정 하는 공간
-
-# muchu_model = Word2Vec.load("경로 설정")
+kMeansModel = joblib.load('KMEANS-200vec-75cluster.txt')
+W2Vmodel = gensim.models.Word2Vec.load('ko.bin')
 
 
-@app.route('/test', methods=['POST'])
-def test():
-    print('TEST')
-
-    return "TEST SUCCESSFUL"
+# PCA
+# 로컬 이슈
+# EC2 관련해서 잘 돌아가도록
 
 
-# 검색 함수 설정
-@app.route('/search', methods=['POST'])
-def search():
-    data = request.get_json()
-
-    # 만약 단어가 사전에 존재 하지 않을 시
-    if 'word' not in data:
-        return jsonify({'error': '단어를 입력해 주세요.'}), 400
-
-    word = data['word']
-    # 검색 단어 벡터화 진행
+@app.route('/k-means', methods=['POST'])
+def modeling():
     try:
-        vector = muchu_model.wv[word]
-        return jsonify({'word': word, 'vector': vector.tolist()})
-    except KeyError:
-        return jsonify({'error': f'존재 하지 않는 단어 입니다.'}), 404
-    # 유사도 검사 진행
-    # 만약 모델 및 서버 내부 오류 발생 시
-    return Response('서버 내부 에러 입니다.', 500)
+        data = request.get_json()
+        word = data['word']
 
-    # 적절한 단어가 들어와 유사도 진행도 완료 시
-    response = {
-        # 상위 20개 정도의 이미지 파일 항목값 혹은 해당 파일 이미지
-    }
-    return response, 200
+        wordToVector = W2Vmodel[word]  # shape  (1, 200)
+        wordToVector = wordToVector.reshape((1, 200))
+        wordToVector = wordToVector.astype(np.double)
+        outputClusterNum = kMeansModel.predict(wordToVector)[0]
+
+        responseDict = {'clusterNum': "{}".format(outputClusterNum)}
+        response = make_response(responseDict)
+        response.status_code = 200
+
+        return response
+
+    except KeyError:
+
+        responseDict = {'errorMessage': "존재하지 않는 단어입니다."}
+        response = make_response(responseDict)
+        response.status_code = 400
+
+        return response
+
+    except:
+        responseDict = {'errorMessage': "서버 내부 에러입니다."}
+        response = make_response(responseDict)
+        response.status_code = 500
+
+        return response
 
 
 if __name__ == '__main__':
