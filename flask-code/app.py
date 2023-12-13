@@ -5,7 +5,7 @@ import traceback
 import numpy as np
 
 app = Flask(__name__)
-kMeansModel = joblib.load('KMEANS-200vec-75cluster.txt')
+kMeansModel = joblib.load('../../muchu-mlserver/API_SERVER/KMEANS-200vec-75cluster.txt')
 W2Vmodel = gensim.models.Word2Vec.load('ko.bin')
 
 
@@ -35,14 +35,14 @@ def modeling():
 
         responseDict = {'errorMessage': "존재하지 않는 단어입니다."}
         response = make_response(responseDict)
-        response.status_code = 400
+        response.status_code = 200
 
         return response
 
     except:
         responseDict = {'errorMessage': "서버 내부 에러입니다."}
         response = make_response(responseDict)
-        response.status_code = 500
+        response.status_code = 200
 
         return response
 
